@@ -1,4 +1,4 @@
-const PASSWORD = "1234"; // CHANGE THIS
+const PASSWORD = "123456"; // CHANGE THIS
 
 function login() {
     let input = document.getElementById("password").value;
