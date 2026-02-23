@@ -1,43 +1,54 @@
-function addLink() {
-  let input = document.getElementById("linkInput");
-  let url = input.value.trim();
+document.addEventListener("DOMContentLoaded", () => {
+  const input = document.getElementById("linkInput");
+  const addBtn = document.getElementById("addBtn");
 
-  if (!url) {
-    alert("Enter a link");
-    return;
+  function addLink() {
+    let url = input.value.trim();
+    if (!url) return alert("Enter a link");
+
+    let links = JSON.parse(localStorage.getItem("links") || "[]");
+    links.push(url);
+
+    localStorage.setItem("links", JSON.stringify(links));
+    input.value = "";
+    showLinks();
   }
 
-  let links = JSON.parse(localStorage.getItem("links") || "[]");
+  function deleteLink(index) {
+    let links = JSON.parse(localStorage.getItem("links") || "[]");
+    links.splice(index, 1);
+    localStorage.setItem("links", JSON.stringify(links));
+    showLinks();
+  }
 
-  links.push(url);
-  localStorage.setItem("links", JSON.stringify(links));
+  function showLinks() {
+    let links = JSON.parse(localStorage.getItem("links") || "[]");
+    const container = document.getElementById("links");
 
-  input.value = "";
-  showLinks();
-}
+    container.innerHTML = "";
 
-function deleteLink(index) {
-  let links = JSON.parse(localStorage.getItem("links") || "[]");
-  links.splice(index, 1);
-  localStorage.setItem("links", JSON.stringify(links));
-  showLinks();
-}
+    links.forEach((link, i) => {
+      const p = document.createElement("p");
 
-function showLinks() {
-  let links = JSON.parse(localStorage.getItem("links") || "[]");
-
-  let html = "";
-
-  links.forEach((link, i) => {
-    html += `
-      <p>
+      p.innerHTML = `
         <a href="${link}" target="_blank">${link}</a>
         <button onclick="deleteLink(${i})">❌ Delete</button>
-      </p>
-    `;
+      `;
+
+      container.appendChild(p);
+    });
+  }
+
+  // Button click
+  addBtn.addEventListener("click", addLink);
+
+  // Press ENTER to add
+  input.addEventListener("keypress", e => {
+    if (e.key === "Enter") addLink();
   });
 
-  document.getElementById("links").innerHTML = html;
-}
+  // Make deleteLink global
+  window.deleteLink = deleteLink;
 
-showLinks();
+  showLinks();
+});
