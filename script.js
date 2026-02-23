@@ -1,12 +1,18 @@
 function addLink() {
+  let input = document.getElementById("linkInput");
+  let url = input.value.trim();
+
+  if (!url) {
+    alert("Enter a link");
+    return;
+  }
+
   let links = JSON.parse(localStorage.getItem("links") || "[]");
 
-  if (!link.value) return alert("Enter a link");
-
-  links.push(link.value);
+  links.push(url);
   localStorage.setItem("links", JSON.stringify(links));
 
-  link.value = "";
+  input.value = "";
   showLinks();
 }
 
@@ -20,14 +26,18 @@ function deleteLink(index) {
 function showLinks() {
   let links = JSON.parse(localStorage.getItem("links") || "[]");
 
-  document.getElementById("links").innerHTML = links
-    .map((l, i) => `
+  let html = "";
+
+  links.forEach((link, i) => {
+    html += `
       <p>
-        <a href="${l}" target="_blank">${l}</a>
+        <a href="${link}" target="_blank">${link}</a>
         <button onclick="deleteLink(${i})">❌ Delete</button>
       </p>
-    `)
-    .join("");
+    `;
+  });
+
+  document.getElementById("links").innerHTML = html;
 }
 
 showLinks();
