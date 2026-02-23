@@ -1,17 +1,11 @@
-function login() {
-  localStorage.setItem("user", email.value);
-  location = "dashboard.html";
-}
-
-function logout() {
-  localStorage.clear();
-  location = "index.html";
-}
-
 function addLink() {
   let links = JSON.parse(localStorage.getItem("links") || "[]");
+
+  if (!link.value) return alert("Enter a link");
+
   links.push(link.value);
   localStorage.setItem("links", JSON.stringify(links));
+
   link.value = "";
   showLinks();
 }
@@ -36,4 +30,4 @@ function showLinks() {
     .join("");
 }
 
-if (document.getElementById("links")) showLinks();
+showLinks();
