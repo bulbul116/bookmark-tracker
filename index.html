@@ -2,18 +2,65 @@
 <html>
 <head>
 <title>Bookmark Manager</title>
-<link rel="stylesheet" href="style.css">
+<style>
+body { font-family: Arial; padding: 30px; }
+input, button { padding: 8px; margin: 10px 0; }
+</style>
 </head>
 <body>
 
 <h2>My Bookmark Manager</h2>
 
-<input id="linkInput" placeholder="Enter website link" />
-<button id="addBtn">Add Link</button>
+<input id="link" placeholder="Enter link">
+<button onclick="add()">Add Link</button>
 
-<div id="links"></div>
+<div id="list"></div>
 
-<script src="script.js"></script>
+<script>
+function add() {
+  let input = document.getElementById("link");
+  let url = input.value;
+
+  if (!url) {
+    alert("Enter link");
+    return;
+  }
+
+  let links = JSON.parse(localStorage.getItem("links") || "[]");
+  links.push(url);
+  localStorage.setItem("links", JSON.stringify(links));
+
+  input.value = "";
+  show();
+}
+
+function remove(i) {
+  let links = JSON.parse(localStorage.getItem("links") || "[]");
+  links.splice(i, 1);
+  localStorage.setItem("links", JSON.stringify(links));
+  show();
+}
+
+function show() {
+  let links = JSON.parse(localStorage.getItem("links") || "[]");
+  let html = "";
+
+  links.forEach((l, i) => {
+    html += `<p>
+      <a href="${l}" target="_blank">${l}</a>
+      <button onclick="remove(${i})">Delete</button>
+    </p>`;
+  });
+
+  document.getElementById("list").innerHTML = html;
+}
+
+document.getElementById("link").addEventListener("keypress", function(e){
+  if (e.key === "Enter") add();
+});
+
+show();
+</script>
 
 </body>
 </html>
