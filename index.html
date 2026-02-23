@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>My Link Tracker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div id="loginBox" class="login">
+    <h2>🔐 Enter Password</h2>
+    <input type="password" id="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+</div>
+
+<div id="app" class="hidden">
+    <h1>📌 Link Tracker</h1>
+
+    <div class="addBox">
+        <input id="linkInput" placeholder="Paste your link here">
+        <button onclick="addLink()">Add Link</button>
+    </div>
+
+    <div id="linksContainer"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
