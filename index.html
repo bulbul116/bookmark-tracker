@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bulbul Cloud Pro</title>
+    <title>Zenith Cloud Pro</title>
     <style>
         :root {
             --bg: #0b0e14; --sidebar: #0d1117; --card: #161b22; 
@@ -11,13 +11,11 @@
 
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Navigation Sidebar */
         .sidebar { width: 220px; background: var(--sidebar); border-right: 1px solid var(--border); padding: 25px; display: flex; flex-direction: column; gap: 10px; }
         .logo { font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 30px; letter-spacing: 1px; }
         .nav-btn { font-size: 14px; color: #8b949e; cursor: pointer; padding: 12px; border-radius: 10px; transition: 0.3s; border: none; background: none; text-align: left; width: 100%; display: flex; align-items: center; gap: 10px; }
         .nav-btn:hover, .nav-btn.active { background: var(--card); color: var(--text); }
 
-        /* Main Content View */
         .main { flex: 1; padding: 40px; display: flex; flex-direction: column; overflow-y: auto; }
         .view-panel { display: none; }
         .view-panel.active { display: block; }
@@ -26,39 +24,32 @@
         input { flex: 1; padding: 14px 20px; background: #0d1117; border: 1px solid var(--border); color: var(--text); border-radius: 12px; outline: none; }
         .add-btn { padding: 12px 25px; background: var(--primary); border: none; color: white; border-radius: 12px; cursor: pointer; font-weight: 600; }
 
-        /* Folder & Timeline Logic */
-        .folder-header { 
-            display: flex; align-items: center; gap: 10px; cursor: pointer; 
-            padding: 12px; margin-top: 15px; border-radius: 8px; 
-            font-weight: 600; color: #8b949e; user-select: none;
-        }
+        .folder-header { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 12px; margin-top: 15px; border-radius: 8px; font-weight: 600; color: #8b949e; user-select: none; }
         .folder-header:hover { background: rgba(255,255,255,0.05); color: white; }
         .folder-header::before { content: '▼'; font-size: 10px; transition: 0.3s; }
         .folder-header.collapsed::before { transform: rotate(-90deg); }
         .folder-content.hidden { display: none; }
 
-        /* Single Line Bookmark Row */
-        .bookmark-row { 
-            display: flex; align-items: center; gap: 15px; background: var(--card); 
-            padding: 12px 20px; border-radius: 12px; margin-bottom: 8px; 
-            border: 1px solid var(--border); transition: 0.3s; margin-left: 20px;
-        }
+        .bookmark-row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px 20px; border-radius: 12px; margin-bottom: 8px; border: 1px solid var(--border); transition: 0.3s; margin-left: 20px; }
         .bookmark-row:hover { border-color: var(--primary); transform: translateX(5px); }
         .link-url { flex: 1; color: var(--text); text-decoration: none; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .del-btn { background: none; border: none; color: #484f58; cursor: pointer; font-size: 18px; }
 
         #auth_screen { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; flex-direction: column; }
+        
+        #loading_spinner { font-size: 14px; color: var(--primary); margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
 <div id="auth_screen">
-    <div class="logo">Bulbul CLOUD</div>
-    <button class="add-btn" id="loginBtn" style="height: 50px;">Login with Google</button>
+    <div class="logo">ZENITH CLOUD</div>
+    <button class="add-btn" id="loginBtn" style="height: 50px; min-width: 200px;">Login with Google</button>
+    <p id="loading_spinner">Checking your session...</p>
 </div>
 
 <div class="sidebar">
-    <div class="logo">Bulbul</div>
+    <div class="logo">ZENITH</div>
     <button class="nav-btn active" onclick="showView('dashboard')">🏠 Dashboard</button>
     <button class="nav-btn" onclick="showView('settings')">⚙️ Settings</button>
     <button class="nav-btn" style="margin-top: auto; color: var(--danger);" id="logoutBtn">🚪 Logout</button>
@@ -87,6 +78,36 @@
     const SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
     let accessToken = null, fileId = null, bookmarks = [], client = null;
 
+    // --- SESSION MANAGEMENT ---
+    function checkExistingSession() {
+        const savedToken = localStorage.getItem('zenith_token');
+        const tokenExpiry = localStorage.getItem('zenith_token_expiry');
+        
+        // If we have a token that is still valid for at least 5 more minutes
+        if (savedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry) - 300000) {
+            document.getElementById('loading_spinner').style.display = 'block';
+            document.getElementById('loginBtn').style.display = 'none';
+            
+            accessToken = savedToken;
+            document.getElementById("auth_screen").style.display = "none";
+            initDriveFile();
+        }
+    }
+
+    function saveSession(token) {
+        accessToken = token;
+        // Access tokens usually last 3600 seconds (1 hour)
+        const expiryTime = Date.now() + 3600000; 
+        localStorage.setItem('zenith_token', token);
+        localStorage.setItem('zenith_token_expiry', expiryTime.toString());
+    }
+
+    function clearSession() {
+        localStorage.removeItem('zenith_token');
+        localStorage.removeItem('zenith_token_expiry');
+        location.reload();
+    }
+
     function showView(viewId) {
         document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
         document.getElementById(viewId).classList.add('active');
@@ -98,22 +119,29 @@
                 client_id: CLIENT_ID, scope: SCOPES,
                 callback: (res) => {
                     if (res.access_token) {
-                        accessToken = res.access_token;
+                        saveSession(res.access_token);
                         document.getElementById("auth_screen").style.display = "none";
                         initDriveFile();
                     }
                 },
             });
+            // Try to auto-connect on load
+            checkExistingSession();
         } else { setTimeout(initGSI, 100); }
     }
     initGSI();
 
     document.getElementById("loginBtn").onclick = () => client.requestAccessToken();
 
+    // --- DRIVE OPERATIONS ---
     async function initDriveFile() {
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='Bulbul_v5.json'&spaces=appDataFolder`, {
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='zenith_v5.json'&spaces=appDataFolder`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
+        
+        // If the token is invalid (401), force a new login
+        if (res.status === 401) return clearSession();
+
         const data = await res.json();
         if (data.files?.length > 0) { fileId = data.files[0].id; loadData(); } 
         else { createInitialFile(); }
@@ -128,7 +156,7 @@
     }
 
     async function createInitialFile() {
-        const metadata = { name: 'Bulbul_v5.json', parents: ['appDataFolder'] };
+        const metadata = { name: 'zenith_v5.json', parents: ['appDataFolder'] };
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
         form.append('file', new Blob([JSON.stringify([])], { type: 'application/json' }));
@@ -146,7 +174,7 @@
         });
     }
 
-    // Toggle Folders
+    // --- UI HELPERS ---
     window.toggleGroup = (e) => {
         const header = e.currentTarget;
         const content = header.nextElementSibling;
@@ -158,7 +186,6 @@
         const container = document.getElementById("timeline-container");
         container.innerHTML = "";
         
-        // Grouping logic (Year > Month > Date)
         const tree = {};
         bookmarks.forEach(b => {
             const d = new Date(b.id);
@@ -169,15 +196,12 @@
             tree[y][m][day].push(b);
         });
 
-        // Sort Years & Months (Newest Top)
         Object.keys(tree).sort((a,b) => b-a).forEach(y => {
             let yHtml = `<div class="folder-header" onclick="toggleGroup(event)">📅 ${y}</div><div class="folder-content">`;
             Object.keys(tree[y]).reverse().forEach(m => {
                 yHtml += `<div class="folder-header" onclick="toggleGroup(event)" style="margin-left:15px;">📂 ${m}</div><div class="folder-content" style="margin-left:15px;">`;
                 Object.keys(tree[y][m]).sort((a,b) => b-a).forEach(day => {
                     yHtml += `<div class="folder-header" onclick="toggleGroup(event)" style="margin-left:30px;">📍 Day ${day}</div><div class="folder-content" style="margin-left:30px;">`;
-                    
-                    // Newest link in the specific day goes to top
                     tree[y][m][day].reverse().forEach(b => {
                         yHtml += `
                             <div class="bookmark-row">
@@ -210,11 +234,11 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'Bulbul_backup.json';
+        a.download = 'zenith_backup.json';
         a.click();
     }
 
-    document.getElementById("logoutBtn").onclick = () => location.reload();
+    document.getElementById("logoutBtn").onclick = clearSession;
 </script>
 </body>
 </html>
