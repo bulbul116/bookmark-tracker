@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zenith Cloud Pro</title>
+    <title>Bulbul Cloud Pro</title>
     <style>
         :root {
             --bg: #0b0e14; --sidebar: #0d1117; --card: #161b22; 
@@ -43,13 +43,13 @@
 <body>
 
 <div id="auth_screen">
-    <div class="logo">ZENITH CLOUD</div>
+    <div class="logo">Bulbul CLOUD</div>
     <button class="add-btn" id="loginBtn" style="height: 50px; min-width: 200px;">Login with Google</button>
     <p id="loading_spinner">Checking your session...</p>
 </div>
 
 <div class="sidebar">
-    <div class="logo">ZENITH</div>
+    <div class="logo">Bulbul</div>
     <button class="nav-btn active" onclick="showView('dashboard')">🏠 Dashboard</button>
     <button class="nav-btn" onclick="showView('settings')">⚙️ Settings</button>
     <button class="nav-btn" style="margin-top: auto; color: var(--danger);" id="logoutBtn">🚪 Logout</button>
@@ -80,8 +80,8 @@
 
     // --- SESSION MANAGEMENT ---
     function checkExistingSession() {
-        const savedToken = localStorage.getItem('zenith_token');
-        const tokenExpiry = localStorage.getItem('zenith_token_expiry');
+        const savedToken = localStorage.getItem('Bulbul_token');
+        const tokenExpiry = localStorage.getItem('Bulbul_token_expiry');
         
         // If we have a token that is still valid for at least 5 more minutes
         if (savedToken && tokenExpiry && Date.now() < parseInt(tokenExpiry) - 300000) {
@@ -98,13 +98,13 @@
         accessToken = token;
         // Access tokens usually last 3600 seconds (1 hour)
         const expiryTime = Date.now() + 3600000; 
-        localStorage.setItem('zenith_token', token);
-        localStorage.setItem('zenith_token_expiry', expiryTime.toString());
+        localStorage.setItem('Bulbul_token', token);
+        localStorage.setItem('Bulbul_token_expiry', expiryTime.toString());
     }
 
     function clearSession() {
-        localStorage.removeItem('zenith_token');
-        localStorage.removeItem('zenith_token_expiry');
+        localStorage.removeItem('Bulbul_token');
+        localStorage.removeItem('Bulbul_token_expiry');
         location.reload();
     }
 
@@ -135,7 +135,7 @@
 
     // --- DRIVE OPERATIONS ---
     async function initDriveFile() {
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='zenith_v5.json'&spaces=appDataFolder`, {
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='Bulbul_v5.json'&spaces=appDataFolder`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
         
@@ -156,7 +156,7 @@
     }
 
     async function createInitialFile() {
-        const metadata = { name: 'zenith_v5.json', parents: ['appDataFolder'] };
+        const metadata = { name: 'Bulbul_v5.json', parents: ['appDataFolder'] };
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
         form.append('file', new Blob([JSON.stringify([])], { type: 'application/json' }));
@@ -234,7 +234,7 @@
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'zenith_backup.json';
+        a.download = 'Bulbul_backup.json';
         a.click();
     }
 
