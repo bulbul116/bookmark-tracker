@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Zenith Cloud Pro</title>
+    <title>Bulbul Cloud Pro</title>
     <style>
         :root {
             --bg: #0b0e14; --sidebar: #0d1117; --card: #161b22; 
@@ -111,7 +111,7 @@
     document.getElementById("loginBtn").onclick = () => client.requestAccessToken();
 
     async function initDriveFile() {
-        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='zenith_v5.json'&spaces=appDataFolder`, {
+        const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=name='Bulbul_v5.json'&spaces=appDataFolder`, {
             headers: { Authorization: `Bearer ${accessToken}` }
         });
         const data = await res.json();
@@ -128,7 +128,7 @@
     }
 
     async function createInitialFile() {
-        const metadata = { name: 'zenith_v5.json', parents: ['appDataFolder'] };
+        const metadata = { name: 'Bulbul_v5.json', parents: ['appDataFolder'] };
         const form = new FormData();
         form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
         form.append('file', new Blob([JSON.stringify([])], { type: 'application/json' }));
